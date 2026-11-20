@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JUMANJI - Jungle Adventure</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:12px;min-height:100vh;background:#c4ad78;color:#342b1c;font-family:Georgia,serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.screen{display:none}
+.screen.active{display:flex}
+.jungle{min-height:calc(100vh - 24px);align-items:center;justify-content:center;position:relative;overflow:hidden;isolation:isolate;border:9px solid #493a25;border-radius:15px;outline:3px solid #9b8050;outline-offset:-14px;background:radial-gradient(ellipse at 5% 10%,#526b32 0 4%,transparent 23%),radial-gradient(ellipse at 95% 90%,#526b32 0 5%,transparent 25%),repeating-linear-gradient(45deg,#c8b27e 0 15px,#b9a16b 15px 30px)}
+.jungle:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 0 0,#344f25 0 8%,transparent 25%),radial-gradient(ellipse at 100% 0,#344f25 0 8%,transparent 25%),radial-gradient(ellipse at 0 100%,#344f25 0 8%,transparent 25%),radial-gradient(ellipse at 100% 100%,#344f25 0 8%,transparent 25%)}
+.jungle:after{content:"";position:absolute;inset:12px;border:2px dashed #e0ca91;pointer-events:none;z-index:-1}
+.panel{width:min(100%,540px);margin:auto;text-align:center;padding:12px}
+.stone{position:relative;overflow:hidden;background:radial-gradient(circle at 15% 20%,#e0d0a7 0 2px,transparent 3px),repeating-linear-gradient(135deg,#b5a17a 0 20px,#c7b58d 20px 40px);border:8px ridge #685437;border-radius:17px;padding:27px 18px;box-shadow:inset 0 0 0 3px #e1d0a5,inset 0 0 20px #665234,0 10px 20px #342b1c}
+.stone:before,.stone:after{position:absolute;color:#344e28;font-size:30px;pointer-events:none}
+.stone:before{content:"🌿";top:3px;left:5px}
+.stone:after{content:"🌿";bottom:3px;right:5px}
+h1{font-size:clamp(42px,12vw,72px);letter-spacing:5px;margin:10px 0 20px;color:#352b1d;text-shadow:2px 2px #e2d0a4,4px 5px #796442}
+h2{color:#3d512b;font-size:26px}
+.subtitle{font-size:12px;letter-spacing:3px;font-weight:bold;color:#3e5129}
+.btn{display:block;width:100%;padding:13px;margin:12px 0;border:3px ridge #b6a071;border-radius:9px;color:#f5e8c8;background:linear-gradient(#607744,#344c29);font-weight:bold;letter-spacing:1px;box-shadow:0 5px 0 #28391f}
+.btn.secondary{background:linear-gradient(#98794c,#60482c)}
+.btn.light{background:linear-gradient(#e0cea0,#b49a65);color:#3d3020}
+.field{width:100%;padding:12px;margin:8px 0;border:3px ridge #92764b;border-radius:8px;background:#efe1bd;color:#342b1c}
+.small-note{font-size:12px;line-height:1.5;color:#493c29;font-weight:bold}
+.error{color:#7b271d;font-size:12px;font-weight:bold;min-height:18px}
+.auth-switch{display:flex;gap:8px}
+.auth-switch button{flex:1}
+#titleScreen .stone{padding:42px 20px}
+#titleScreen .stone p{font-size:30px;padding:12px 0;border-block:2px solid #806b45}
+.board-screen{display:none}
+.board-screen.active{display:block}
+.game{width:min(100%,550px);margin:auto}
+.board{position:relative;width:100%;aspect-ratio:1;background:#d7c18e;border:5px solid #665334;border-radius:12px;overflow:hidden;box-shadow:0 5px 12px #76603d}
+svg{width:100%;height:100%;display:block}
+.start{position:absolute;width:13%;height:13%;background:#f2e4c4;border:3px solid #705b38;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:4;font-size:24px}
+.start small{font-size:8px;font-weight:bold}
+.s1{top:0;left:0}.s2{top:0;right:0}.s3{bottom:0;left:0}.s4{bottom:0;right:0}
+.center{position:absolute;width:19%;aspect-ratio:1;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#15d3a0,#009477,#006c58);border:7px solid #785d32;box-shadow:0 0 0 4px #c5a45c;z-index:5}
+.controls{margin-top:12px;padding:10px;border-radius:12px;background:#d8c49a;border:2px solid #a68a59;display:flex;align-items:center;gap:8px}
+.dice{width:42px;height:42px;background:#f1e5c8;border:2px solid #8d744d;border-radius:10px;font-size:27px;display:grid;place-items:center}
+.roll{flex:1;min-height:43px;background:#47613c;color:white;border:2px solid #334b2b;border-radius:10px;font-weight:bold}
+.roll:disabled{opacity:.5}
+.info{font-size:11px;flex:1}
+.players{margin-top:8px;padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:#d8c49a;border:2px solid #a68a59;border-radius:12px}
+.player{text-align:center;padding:7px 2px;border:2px solid transparent;border-radius:9px;font-size:10px;font-weight:bold;overflow-wrap:anywhere}
+.player span{display:block;font-size:23px}
+.player.active{background:#f1e3c2;border-color:#a16c35}
+.status{text-align:center;margin-top:10px;font-weight:bold}
+.modal{display:none;position:fixed;inset:0;background:#171b12dd;z-index:20;align-items:center;justify-content:center;padding:15px}
+.modal.show{display:flex}
+.modal-card{width:min(100%,520px);max-height:90vh;overflow:auto;text-align:center;background:#d4c095;border:8px ridge #705735;border-radius:16px;padding:22px;box-shadow:0 0 30px #000}
+.modal-card h2{margin-top:5px}
+.question-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:15px 0}
+.answer{padding:12px 7px;background:#526b3b;color:white;border:3px ridge #a58a59;border-radius:9px;font-weight:bold}
+.answer:disabled{opacity:.7}
+.answer.correct{background:#267346}
+.answer.wrong{background:#923d2c}
+#questionFeedback{font-weight:bold;min-height:25px}
+.victory{display:none;position:fixed;inset:0;z-index:30;background:radial-gradient(circle,#385a2d,#101d13);color:#fff3c5;align-items:center;justify-content:center;text-align:center;padding:15px;overflow:hidden}
+.victory.show{display:flex}
+.victory-card{position:relative;z-index:2;width:min(100%,520px);padding:25px 18px;border:7px ridge #c6a65f;border-radius:18px;background:#344c2bdf;box-shadow:0 0 35px #d8bd65}
+.victory h1{color:#ffe38b;text-shadow:2px 3px #67451e}
+.winner-animal{font-size:75px;margin:10px}
+.firework{position:absolute;width:8px;height:8px;border-radius:50%;background:transparent;box-shadow:0 0 0 0 #ffdf70;animation:burst 1.8s infinite}
+.f1{top:20%;left:20%;animation-delay:0s}.f2{top:28%;right:20%;animation-delay:.6s}.f3{bottom:20%;left:50%;animation-delay:1.1s}
+@keyframes burst{0%{box-shadow:0 0 0 0 #ffdf70,0 0 0 0 #f88,0 0 0 0 #8ef,0 0 0 0 #fff;opacity:1}70%{box-shadow:0 -55px 0 2px #ffdf70,50px 0 0 2px #f88,-50px 0 0 2px #8ef,0 55px 0 2px #fff;opacity:1}100%{opacity:0}}
+.confetti{position:absolute;top:-20px;width:9px;height:15px;background:#f5d36d;animation:fall 4s linear infinite}
+.confetti:nth-child(2n){background:#e67c51;animation-duration:3s}
+.confetti:nth-child(3n){background:#9bc96b;animation-duration:5s}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media(max-width:390px){.stone{padding:22px 12px}.controls{gap:5px}.info{font-size:10px}.question-options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- TITLE -->
+<section class="screen jungle active" id="titleScreen">
+ <div class="panel"><div class="stone">
+  <div class="subtitle">THE JUNGLE ADVENTURE BEGINS</div>
+  <h1>JUMANJI</h1>
+  <p>🐊　🐒　🦏　🐘</p>
+  <button class="btn" onclick="showScreen('authScreen')">ENTER THE JUNGLE</button>
+  <div class="small-note">ROLL THE DICE. ANSWER THE CALL. CONQUER THE JUNGLE.</div>
+ </div></div>
+</section>
+
+<!-- AUTH CHOICE -->
+<section class="screen jungle" id="authScreen">
+ <div class="panel"><div class="stone">
+  <h2>WELCOME, EXPLORER</h2>
+  <p class="small-note">Choose how you want to enter JUMANJI.</p>
+  <button class="btn" onclick="showScreen('loginScreen')">LOGIN</button>
+  <button class="btn secondary" onclick="showScreen('signupScreen')">SIGN UP</button>
+  <button class="btn light" onclick="playAsGuest()">PLAY AS GUEST</button>
+  <button class="btn light" onclick="showScreen('titleScreen')">BACK</button>
+ </div></div>
+</section>
+
+<!-- LOGIN -->
+<section class="screen jungle" id="loginScreen">
+ <div class="panel"><div class="stone">
+  <h2>PLAYER LOGIN</h2>
+  <input class="field" id="loginUsername" placeholder="Username">
+  <input class="field" id="loginPassword" type="password" placeholder="Password">
+  <p class="error" id="loginError"></p>
+  <button class="btn" onclick="login()">LOGIN</button>
+  <button class="btn secondary" onclick="showScreen('signupScreen')">SIGN UP</button>
+  <button class="btn light" onclick="showScreen('authScreen')">BACK</button>
+ </div></div>
+</section>
+
+<!-- SIGN UP -->
+<section class="screen jungle" id="signupScreen">
+ <div class="panel"><div class="stone">
+  <h2>JOIN THE ADVENTURE</h2>
+  <input class="field" id="signupUsername" maxlength="16" placeholder="Choose username">
+  <input class="field" id="signupPhone" type="tel" placeholder="Phone number">
+  <input class="field" id="signupEmail" type="email" placeholder="Email address">
+  <input class="field" id="signupPassword" type="password" placeholder="Create password">
+  <input class="field" id="signupConfirm" type="password" placeholder="Confirm password">
+  <p class="error" id="signupError"></p>
+  <button class="btn" onclick="signup()">CREATE ACCOUNT</button>
+  <button class="btn secondary" onclick="showScreen('loginScreen')">LOGIN</button>
+  <button class="btn light" onclick="showScreen('authScreen')">BACK</button>
+ </div></div>
+</section>
+
+<!-- LOBBY -->
+<section class="screen jungle" id="lobbyScreen">
+ <div class="panel"><div class="stone">
+  <h2>JUNGLE LOBBY</h2>
+  <p id="welcomeText" class="small-note">Welcome, Player</p>
+  <button class="btn" onclick="showScreen('createScreen')">CREATE ROOM</button>
+  <button class="btn secondary" onclick="showScreen('joinScreen')">JOIN ROOM</button>
+  <button class="btn light" onclick="showScreen('botScreen')">PLAY WITH BOTS</button>
+  <button class="btn secondary" onclick="logout()">LOG OUT</button>
+ </div></div>
+</section>
+
+<!-- CREATE ROOM -->
+<section class="screen jungle" id="createScreen">
+ <div class="panel"><div class="stone">
+  <h2>CREATE ROOM</h2>
+  <p class="small-note">Choose the total number of players.</p>
+  <select class="field" id="roomPlayers">
+   <option value="2">2 Players</option><option value="3">3 Players</option><option value="4" selected>4 Players</option>
+  </select>
+  <button class="btn" onclick="createRoom()">CREATE</button>
+  <button class="btn secondary" onclick="showScreen('lobbyScreen')">BACK</button>
+ </div></div>
+</section>
+
+<!-- ROOM SCREEN -->
+<section class="screen jungle" id="roomScreen">
+ <div class="panel"><div class="stone">
+  <h2>ROOM CREATED</h2>
+  <p class="small-note">Your room code:</p>
+  <h1 id="roomCodeDisplay" style="font-size:42px"></h1>
+  <button class="btn light" onclick="copyRoomCode()">COPY ROOM CODE</button>
+  <p class="small-note" id="roomDetails"></p>
+  <button class="btn" onclick="startRoom()">START GAME</button>
+  <button class="btn secondary" onclick="showScreen('lobbyScreen')">BACK</button>
+ </div></div>
+</section>
+
+<!-- JOIN ROOM -->
+<section class="screen jungle" id="joinScreen">
+ <div class="panel"><div class="stone">
+  <h2>JOIN ROOM</h2>
+  <p class="small-note">Enter a room code created on this browser.</p>
+  <input class="field" id="joinCode" maxlength="6" placeholder="ROOM CODE">
+  <button class="btn" onclick="joinRoom()">JOIN</button>
+  <p id="joinMessage" class="small-note"></p>
+  <button class="btn secondary" onclick="showScreen('lobbyScreen')">BACK</button>
+ </div></div>
+</section>
+
+<!-- BOT SETUP -->
+<section class="screen jungle" id="botScreen">
+ <div class="panel"><div class="stone">
+  <h2>PLAY WITH BOTS</h2>
+  <p class="small-note">Choose the total number of players.</p>
+  <select class="field" id="botPlayers">
+   <option value="2">You + 1 Bot</option>
+   <option value="3">You + 2 Bots</option>
+   <option value="4" selected>You + 3 Bots</option>
+  </select>
+
+  <p class="small-note">CHOOSE BOT DIFFICULTY</p>
+  <select class="field" id="botDifficulty">
+   <option value="Beginner">Beginner — 30%</option>
+   <option value="Explorer" selected>Explorer — 40%</option>
+   <option value="Advanced">Advanced — 50%</option>
+   <option value="Master">Master — 60%</option>
+  </select>
+
+  <p class="small-note">All bots will play at the difficulty you select.</p>
+  <button class="btn" onclick="startBotGame()">START GAME</button>
+  <button class="btn secondary" onclick="showScreen('lobbyScreen')">BACK</button>
+ </div></div>
+</section>
+
+<!-- GAME BOARD -->
+<section class="screen board-screen" id="gameScreen">
+ <div class="game">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+   <strong>JUMANJI</strong>
+   <button class="btn secondary" style="width:auto;margin:0;padding:8px 12px" onclick="leaveGame()">EXIT</button>
+  </div>
+  <div class="board">
+   <svg id="board" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">
+    <defs><pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r=".8" fill="#fff4cf" opacity=".45"/></pattern></defs>
+    <rect width="480" height="480" fill="#d7c18e"/>
+    <rect width="480" height="480" fill="url(#dots)"/>
+    <g fill="#91b84c" opacity=".7">
+     <ellipse cx="155" cy="25" rx="17" ry="32"/><ellipse cx="325" cy="25" rx="16" ry="30"/>
+     <ellipse cx="25" cy="170" rx="15" ry="27"/><ellipse cx="440" cy="230" rx="17" ry="31"/>
+     <ellipse cx="55" cy="315" rx="15" ry="30"/><ellipse cx="165" cy="360" rx="17" ry="33"/>
+     <ellipse cx="400" cy="380" rx="16" ry="31"/><ellipse cx="375" cy="440" rx="18" ry="33"/>
+    </g>
+    <g id="tracks"></g><g id="pieces"></g>
+   </svg>
+   <div class="start s1">🐊<small>START</small></div>
+   <div class="start s2">🐒<small>START</small></div>
+   <div class="start s3">🦏<small>START</small></div>
+   <div class="start s4">🐘<small>START</small></div>
+   <div class="center"></div>
+  </div>
+  <div class="controls">
+   <div id="currentIcon" style="font-size:28px">🐊</div>
+   <div class="dice" id="dice">🎲</div>
+   <button class="roll" id="roll">ROLL DICE</button>
+   <div class="info" id="message">Roll the dice!</div>
+  </div>
+  <div class="players" id="playerCards"></div>
+  <div class="status" id="status">Your turn!</div>
+ </div>
+</section>
+
+<!-- QUESTION MODAL -->
+<div class="modal" id="questionModal">
+ <div class="modal-card">
+  <div class="subtitle">🌿 THE JUNGLE CHALLENGE 🌿</div>
+  <h2 id="questionHeading">Answer the jungle question!</h2>
+  <p class="small-note" id="questionCategory"></p>
+  <h3 id="questionText"></h3>
+  <div class="question-options" id="questionOptions"></div>
+  <p id="questionFeedback"></p>
+  <p class="small-note" id="questionRule">Correct = move forward. Wrong = move back 2 spaces.</p>
+ </div>
+</div>
+
+<!-- VICTORY -->
+<div class="victory" id="victoryScreen">
+ <div class="firework f1"></div><div class="firework f2"></div><div class="firework f3"></div>
+ <div id="confettiLayer"></div>
+ <div class="victory-card">
+  <div class="subtitle" style="color:#f7df8b">THE JUNGLE HAS BEEN CONQUERED</div>
+  <h1>JUMANJI</h1>
+  <div style="font-size:20px">🏆 VICTORY! 🏆</div>
+  <div class="winner-animal" id="winnerAnimal">🐊</div>
+  <h2 style="color:#ffe38b" id="winnerName">YOU ARE THE WINNER!</h2>
+  <p id="winnerMessage">The jungle adventure is complete!</p>
+  <button class="btn" onclick="playAgain()">PLAY AGAIN</button>
+  <button class="btn secondary" onclick="mainMenu()">MAIN MENU</button>
+ </div>
+</div>
+
+<script>
+"use strict";
+
+const $=id=>document.getElementById(id);
+const svgNS="http://www.w3.org/2000/svg";
+const tracks=$("tracks"),piecesGroup=$("pieces");
+const diceDisplay=$("dice"),rollButton=$("roll");
+const message=$("message"),status=$("status"),currentIcon=$("currentIcon");
+
+const animalTemplates=[
+ {name:"Alligator",emoji:"🐊",color:"#253b40"},
+ {name:"Monkey",emoji:"🐒",color:"#95645a"},
+ {name:"Rhino",emoji:"🦏",color:"#087c66"},
+ {name:"Elephant",emoji:"🐘",color:"#087c85"}
+];
+
+const startSpots=[
+ {x:30,y:30},{x:450,y:30},{x:450,y:450},{x:30,y:450}
+];
+
+const botLevels=[
+ {name:"Beginner",chance:.30},
+ {name:"Explorer",chance:.40},
+ {name:"Advanced",chance:.50},
+ {name:"Master",chance:.60}
+];
+
+let playerName="Guest",players=[],currentPlayer=0,moving=false;
+let gameMode="bot",roomCode="",lastGameCount=2,lastGameMode="bot";
+let lastGameLevel="Explorer";
+let pendingRoll=0,questionLocked=false,botTimer=null;
+let questionBank=[],currentQuestion=null;
+
+/* ---------------- ACCOUNT AND GUEST MODE ---------------- */
+
+function getAccounts(){
+ try{return JSON.parse(localStorage.getItem("jumanjiAccounts")||"{}")}
+ catch(e){return {}}
+}
+
+function saveAccounts(accounts){
+ localStorage.setItem("jumanjiAccounts",JSON.stringify(accounts));
+}
+
+function playAsGuest(){
+ playerName="Guest";
+ $("welcomeText").textContent="Welcome, Guest! Your adventure awaits.";
+ showScreen("lobbyScreen");
+}
+
+function signup(){
+ const username=$("signupUsername").value.trim();
+ const phone=$("signupPhone").value.trim();
+ const email=$("signupEmail").value.trim().toLowerCase();
+ const password=$("signupPassword").value;
+ const confirm=$("signupConfirm").value;
+ const error=$("signupError");
+ error.textContent="";
+
+ if(username.length<3){error.textContent="Username must have at least 3 characters.";return}
+ if(!/^[0-9+()\-\s]{7,15}$/.test(phone)){error.textContent="Enter a valid phone number.";return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){error.textContent="Enter a valid email address.";return}
+ if(password.length<6){error.textContent="Password must have at least 6 characters.";return}
+ if(password!==confirm){error.textContent="Passwords do not match.";return}
+
+ const accounts=getAccounts(),key=username.toLowerCase();
+ if(accounts[key]){error.textContent="That username is already registered.";return}
+
+ accounts[key]={username,phone,email,password};
+ saveAccounts(accounts);
+ playerName=username;
+ $("welcomeText").textContent="Welcome, "+playerName+"!";
+ alert("Demo account created in this browser.");
+ showScreen("lobbyScreen");
+}
+
+function login(){
+ const username=$("loginUsername").value.trim();
+ const password=$("loginPassword").value;
+ const error=$("loginError");
+ error.textContent="";
+
+ const account=getAccounts()[username.toLowerCase()];
+ if(!account||account.password!==password){
+  error.textContent="Incorrect username or password.";
+  return;
+ }
+
+ playerName=account.username;
+ $("welcomeText").textContent="Welcome, "+playerName+"!";
+ showScreen("lobbyScreen");
+}
+
+function logout(){
+ playerName="Guest";
+ showScreen("titleScreen");
+}
+
+/* ---------------- NAVIGATION AND ROOMS ---------------- */
+
+function showScreen(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ $(id).classList.add("active");
+}
+
+function makeRoomCode(){
+ return Math.random().toString(36).substring(2,8).toUpperCase();
+}
+
+function createRoom(){
+ const count=Number($("roomPlayers").value);
+ roomCode=makeRoomCode();
+ localStorage.setItem("jumanjiRoom_"+roomCode,JSON.stringify({code:roomCode,count,host:playerName}));
+ $("roomCodeDisplay").textContent=roomCode;
+ $("roomDetails").textContent="Host: "+playerName+" | Players: "+count+" | Local demo room";
+ showScreen("roomScreen");
+}
+
+function copyRoomCode(){
+ if(navigator.clipboard){
+  navigator.clipboard.writeText(roomCode).then(()=>alert("Room code copied!")).catch(()=>alert("Room code: "+roomCode));
+ }else alert("Room code: "+roomCode);
+}
+
+function joinRoom(){
+ const code=$("joinCode").value.trim().toUpperCase();
+ const saved=localStorage.getItem("jumanjiRoom_"+code);
+
+ if(!saved){
+  $("joinMessage").textContent="Room not found on this browser. Check the code.";
+  return;
+ }
+
+ const room=JSON.parse(saved);
+ $("joinMessage").textContent="Room found! Host: "+room.host+". Starting local demo.";
+ setTimeout(()=>startGame(room.count,"local"),700);
+}
+
+function startRoom(){
+ const saved=localStorage.getItem("jumanjiRoom_"+roomCode);
+ const count=saved?JSON.parse(saved).count:2;
+ startGame(count,"local");
+}
+
+/* ---------------- BOT GAME SETUP ---------------- */
+
+function startBotGame(){
+ const count=Number($("botPlayers").value);
+ const selectedLevel=$("botDifficulty").value;
+
+ lastGameLevel=selectedLevel;
+ startGame(count,"bot",selectedLevel);
+}
+
+function leaveGame(){
+ moving=false;
+ questionLocked=false;
+ clearTimeout(botTimer);
+ $("questionModal").classList.remove("show");
+ showScreen("lobbyScreen");
+}
+
+/* ---------------- QUESTION BANK: 2,500 MCQS ---------------- */
+
+const natureFacts=[
+["Tiger","tropical forests and grasslands","deer and wild boar","striped coat for camouflage","mostly active at dawn and night","Asia"],
+["Elephant","savannas and forests","grasses, leaves and bark","trunk used for many tasks","active during day and night","Africa and Asia"],
+["Giraffe","African savannas","leaves from trees","long neck for reaching tall leaves","mostly active during the day","Africa"],
+["Lion","grasslands and open woodlands","meat from hunted animals","powerful paws and sharp claws","often rests during the day","Africa"],
+["Jaguar","rainforests and wetlands","fish, deer and other animals","strong jaws and spotted coat","often active at night","Central and South America"],
+["Leopard","forests, grasslands and mountains","meat from many animals","climbs trees very well","mostly active at night","Africa and Asia"],
+["Gorilla","tropical forests","leaves, stems and fruit","strong arms for climbing and movement","active during the day","Central Africa"],
+["Chimpanzee","tropical forests and woodlands","fruit, leaves and insects","uses simple tools","active during the day","Africa"],
+["Orangutan","rainforests","fruit, leaves and bark","long arms for moving through trees","mostly active during the day","Southeast Asia"],
+["Sloth","tropical rainforests","mainly leaves","slow movement saves energy","rests for much of the day","Central and South America"],
+["Zebra","grasslands and savannas","grass","striped coat may confuse predators","active during the day","Africa"],
+["Rhinoceros","grasslands and forests","grass, leaves and shoots","thick skin and a strong horn","often active in cooler hours","Africa and Asia"],
+["Hippopotamus","rivers and lakes","mostly grass","eyes and nostrils sit high on the head","spends daytime in water","Africa"],
+["Crocodile","rivers, lakes and wetlands","fish, birds and mammals","eyes and nostrils sit high on the head","often rests during the day","Africa, Asia and Australia"],
+["Panda","mountain forests","mostly bamboo","strong wrist bones help grip bamboo","active during day and night","China"],
+["Koala","eucalyptus woodlands","eucalyptus leaves","specialised digestive system","rests for much of the day","Australia"],
+["Kangaroo","grasslands and open woodlands","grass and plants","powerful hind legs for hopping","often active at dawn and dusk","Australia"],
+["Toucan","tropical forests","fruit, insects and small animals","large colourful bill","active during the day","Central and South America"],
+["Macaw","tropical forests","seeds, nuts and fruit","strong curved beak","active during the day","Central and South America"],
+["Eagle","mountains, forests and open country","fish or small animals, depending on species","excellent eyesight","active during the day","many continents"],
+["Owl","forests and other habitats","small mammals and insects","soft feathers help quiet flight","often active at night","many continents"],
+["Poison dart frog","humid tropical rainforests","small insects","bright colours warn of toxicity in some species","active during the day","Central and South America"],
+["Anaconda","swamps, rivers and wetlands","fish, birds and mammals","powerful body for constricting prey","often active around water","South America"],
+["Tapir","tropical forests and wetlands","leaves, fruit and shoots","short flexible snout","often active at night","Central and South America"],
+["Meerkat","dry open areas and scrublands","insects and small animals","stands upright to watch for danger","active during the day","southern Africa"]
+];
+
+const fieldInfo={
+ habitat:{
+  label:"Habitat",
+  prompts:[
+   "Which habitat is most associated with {a}?",
+   "Where would you most likely find a {a}?",
+   "Choose the usual natural habitat of the {a}.",
+   "What environment does the {a} mainly live in?",
+   "Which place is a natural home for the {a}?"
+  ]
+ },
+ diet:{
+  label:"Diet",
+  prompts:[
+   "What does a {a} mainly eat?",
+   "Choose the typical food of the {a}.",
+   "Which food is commonly part of a {a}'s diet?",
+   "What is a usual food source for the {a}?",
+   "Which answer best describes what a {a} eats?"
+  ]
+ },
+ adaptation:{
+  label:"Adaptations",
+  prompts:[
+   "Which feature helps the {a} survive?",
+   "Choose a useful adaptation of the {a}.",
+   "What special feature is associated with the {a}?",
+   "Which ability helps the {a} in its environment?",
+   "Select the correct survival feature of the {a}."
+  ]
+ },
+ activity:{
+  label:"Behaviour",
+  prompts:[
+   "When is the {a} often active?",
+   "Choose the typical activity pattern of the {a}.",
+   "Which time is commonly associated with the {a}?",
+   "When does the {a} usually carry out many activities?",
+   "Select the best description of the {a}'s daily activity."
+  ]
+ },
+ region:{
+  label:"Geography",
+  prompts:[
+   "On which continent or region can the {a} be found?",
+   "Which region is associated with the {a}?",
+   "Where in the world is the {a} naturally found?",
+   "Choose the correct broad region for the {a}.",
+   "Which part of the world is home to the {a}?"
+  ]
+ }
+};
+
+const prefixes=["","Jungle challenge: ","Explorer question: ","Nature knowledge: "];
+
+function shuffle(array){
+ const a=array.slice();
+ for(let i=a.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+
+function buildQuestionBank(){
+ const fields=Object.keys(fieldInfo);
+
+ natureFacts.forEach((fact,index)=>{
+  const animal=fact[0];
+
+  fields.forEach((field,fieldIndex)=>{
+   const answer=fact[fieldIndex+1];
+   const values=[...new Set(natureFacts.map(f=>f[fieldIndex+1]).filter(v=>v!==answer))];
+
+   for(let p=0;p<5;p++){
+    for(let pre=0;pre<4;pre++){
+     const options=shuffle([answer,...shuffle(values).slice(0,3)]);
+
+     questionBank.push({
+      category:fieldInfo[field].label,
+      question:prefixes[pre]+fieldInfo[field].prompts[p].replaceAll("{a}",animal),
+      options,
+      answer
+     });
+    }
+   }
+  });
+ });
+}
+
+buildQuestionBank();
+
+function getRandomQuestion(){
+ return questionBank[Math.floor(Math.random()*questionBank.length)];
+}
+
+/* ---------------- BOARD AND PLAYERS ---------------- */
+
+function createRoute(start,directions){
+ let points=[{x:start[0],y:start[1]}],x=start[0],y=start[1];
+
+ directions.forEach(d=>{
+  for(let i=0;i<d.count;i++){
+   x+=d.dx*21;
+   y+=d.dy*21;
+   points.push({x,y});
+  }
+ });
+
+ return points;
+}
+
+/* All bots receive the SAME selected difficulty. */
+function buildPlayers(count,mode,selectedLevel=null){
+ players=[];
+
+ const chosenLevel=botLevels.find(level=>level.name===selectedLevel)||botLevels.find(level=>level.name==="Explorer");
+
+ for(let i=0;i<count;i++){
+  const template=animalTemplates[i];
+  const isBot=mode==="bot"&&i!==0;
+
+  players.push({
+   ...template,
+   isBot,
+   botLevel:isBot?chosenLevel:null,
+   displayName:i===0?playerName:"Bot "+i,
+   position:-1,
+   finished:false,
+   element:null,
+   route:[]
+  });
+ }
+
+ players[0].route=createRoute([30,72],[
+  {dx:0,dy:1,count:6},{dx:1,dy:0,count:6},
+  {dx:0,dy:-1,count:4},{dx:1,dy:0,count:4},
+  {dx:0,dy:1,count:4}
+ ]);
+
+ if(players[1])players[1].route=createRoute([408,30],[
+  {dx:-1,dy:0,count:6},{dx:0,dy:1,count:6},
+  {dx:1,dy:0,count:4},{dx:0,dy:1,count:4},
+  {dx:-1,dy:0,count:4}
+ ]);
+
+ if(players[2])players[2].route=createRoute([408,450],[
+  {dx:0,dy:-1,count:8},{dx:-1,dy:0,count:4},
+  {dx:0,dy:1,count:4},{dx:-1,dy:0,count:4},
+  {dx:0,dy:-1,count:4}
+ ]);
+
+ if(players[3])players[3].route=createRoute([72,450],[
+  {dx:1,dy:0,count:6},{dx:0,dy:-1,count:6},
+  {dx:-1,dy:0,count:4},{dx:0,dy:-1,count:4},
+  {dx:1,dy:0,count:4}
+ ]);
+}
+
+function drawBoard(){
+ tracks.innerHTML="";
+ piecesGroup.innerHTML="";
+
+ players.forEach((animal,index)=>{
+  animal.route.forEach(point=>{
+   const square=document.createElementNS(svgNS,"rect");
+   square.setAttribute("x",point.x-10);
+   square.setAttribute("y",point.y-10);
+   square.setAttribute("width",20);
+   square.setAttribute("height",20);
+   square.setAttribute("rx",2);
+   square.setAttribute("fill","#ead9b2");
+   square.setAttribute("stroke",animal.color);
+   square.setAttribute("stroke-width",3);
+   tracks.appendChild(square);
+  });
+
+  const piece=document.createElementNS(svgNS,"text");
+  piece.setAttribute("font-size","23");
+  piece.setAttribute("text-anchor","middle");
+  piece.setAttribute("dominant-baseline","middle");
+  piece.textContent=animal.emoji;
+  piecesGroup.appendChild(piece);
+  animal.element=piece;
+  updatePiece(index);
+ });
+}
+
+function updatePiece(index){
+ const animal=players[index];
+ const point=animal.position<0?startSpots[index]:animal.route[animal.position];
+ animal.element.setAttribute("x",point.x);
+ animal.element.setAttribute("y",point.y);
+}
+
+function drawPlayerCards(){
+ const container=$("playerCards");
+ container.innerHTML="";
+
+ players.forEach((p,i)=>{
+  const card=document.createElement("div");
+  card.className="player";
+  card.id="playerCard"+i;
+
+  const level=p.isBot
+   ?"<br>"+p.botLevel.name+" Bot ("+Math.round(p.botLevel.chance*100)+"%)"
+   :"<br>PLAYER";
+
+  card.innerHTML="<span>"+p.emoji+"</span>"+p.name.toUpperCase()+level;
+  container.appendChild(card);
+ }
+}
+
+/* ---------------- GAME START ---------------- */
+
+function startGame(count,mode,selectedLevel=null){
+ clearTimeout(botTimer);
+
+ gameMode=mode;
+ lastGameCount=count;
+ lastGameMode=mode;
+
+ if(mode==="bot"){
+  lastGameLevel=selectedLevel||lastGameLevel;
+ }
+
+ moving=false;
+ questionLocked=false;
+ currentPlayer=0;
+
+ $("victoryScreen").classList.remove("show");
+ $("questionModal").classList.remove("show");
+
+ buildPlayers(count,mode,mode==="bot"?lastGameLevel:null);
+ drawBoard();
+ drawPlayerCards();
+
+ showScreen("gameScreen");
+
+ diceDisplay.textContent="🎲";
+ message.textContent="Roll the dice!";
+ rollButton.disabled=false;
+
+ updateTurn();
+}
+
+function updateTurn(){
+ players.forEach((p,i)=>{
+  const card=$("playerCard"+i);
+  if(card)card.classList.toggle("active",i===currentPlayer);
+ });
+
+ currentIcon.textContent=players[currentPlayer].emoji;
+ status.textContent=players[currentPlayer].displayName+"'s turn!";
+
+ rollButton.disabled=moving||questionLocked||players[currentPlayer].finished;
+
+ if(players[currentPlayer].isBot&&!moving&&!questionLocked){
+  rollButton.disabled=true;
+  clearTimeout(botTimer);
+
+  botTimer=setTimeout(()=>{
+   if(!moving&&!questionLocked&&players[currentPlayer]?.isBot)rollDice();
+  },1000);
+ }
+}
+
+function nextPlayer(){
+ if(players.some(p=>p.finished))return;
+
+ currentPlayer=(currentPlayer+1)%players.length;
+ updateTurn();
+}
+
+/* ---------------- DICE AND QUESTION RULE ---------------- */
+
+function rollDice(){
+ if(moving||questionLocked||players[currentPlayer].finished)return;
+
+ pendingRoll=Math.floor(Math.random()*6)+1;
+ diceDisplay.textContent=String(pendingRoll);
+ message.textContent=players[currentPlayer].displayName+" rolled "+pendingRoll;
+
+ rollButton.disabled=true;
+ showQuestion();
+}
+
+function showQuestion(){
+ currentQuestion=getRandomQuestion();
+ questionLocked=true;
+
+ $("questionHeading").textContent=players[currentPlayer].displayName+" - Jungle Question";
+ $("questionCategory").textContent="CATEGORY: "+currentQuestion.category;
+ $("questionText").textContent=currentQuestion.question;
+ $("questionFeedback").textContent="";
+
+ const options=$("questionOptions");
+ options.innerHTML="";
+
+ const p=players[currentPlayer];
+
+ currentQuestion.options.forEach(option=>{
+  const button=document.createElement("button");
+  button.className="answer";
+  button.textContent=option;
+  button.onclick=()=>answerQuestion(option,button);
+  options.appendChild(button);
+ });
+
+ $("questionModal").classList.add("show");
+
+ if(p.isBot){
+  [...options.children].forEach(b=>b.disabled=true);
+
+  $("questionFeedback").textContent=p.botLevel.name+" Bot is thinking...";
+
+  setTimeout(()=>{
+   if(!questionLocked)return;
+
+   const correct=Math.random()<p.botLevel.chance;
+   let choice;
+
+   if(correct)choice=currentQuestion.answer;
+   else choice=shuffle(currentQuestion.options.filter(x=>x!==currentQuestion.answer))[0];
+
+   const button=[...options.children].find(b=>b.textContent===choice);
+   answerQuestion(choice,button,true);
+  },1600+Math.random()*900);
+ }
+}
+
+function answerQuestion(choice,button,isBot=false){
+ if(!questionLocked)return;
+
+ const correct=choice===currentQuestion.answer;
+
+ if(!isBot){
+  [...$("questionOptions").children].forEach(b=>{
+   b.disabled=true;
+   if(b.textContent===currentQuestion.answer)b.classList.add("correct");
+  });
+
+  if(button&&!correct)button.classList.add("wrong");
+ }
+
+ $("questionFeedback").textContent=correct
+  ?"CORRECT! The jungle rewards you!"
+  :"WRONG! The jungle sends you back 2 spaces.";
+
+ if(isBot){
+  $("questionFeedback").textContent=correct
+   ?"BOT ANSWERED CORRECTLY!"
+   :"BOT ANSWERED INCORRECTLY!";
+
+  const chosen=[...$("questionOptions").children].find(b=>b.textContent===choice);
+  if(chosen)chosen.classList.add(correct?"correct":"wrong");
+
+  [...$("questionOptions").children].forEach(b=>{
+   if(b.textContent===currentQuestion.answer)b.classList.add("correct");
+  });
+ }
+
+ setTimeout(()=>{
+  $("questionModal").classList.remove("show");
+  questionLocked=false;
+
+  if(correct)movePiece(pendingRoll);
+  else movePiece(-2);
+ },isBot?1100:900);
+}
+
+/* Positive number moves forward; -2 applies the wrong-answer penalty. */
+
+function movePiece(amount){
+ const animal=players[currentPlayer];
+
+ moving=true;
+ rollButton.disabled=true;
+
+ const target=amount>0
+  ?Math.min(24,animal.position+amount)
+  :Math.max(-1,animal.position+amount);
+
+ const direction=target>=animal.position?1:-1;
+
+ function animate(){
+  if(animal.position===target){
+   moving=false;
+
+   if(animal.position>=24){
+    animal.position=24;
+    animal.finished=true;
+    updatePiece(currentPlayer);
+    showVictory(animal);
+    return;
+   }
+
+   message.textContent=amount>0
+    ?"Correct! Moved forward "+amount+" spaces."
+    :"Wrong answer! Moved back 2 spaces.";
+
+   nextPlayer();
+   return;
+  }
+
+  animal.position+=direction;
+  updatePiece(currentPlayer);
+  setTimeout(animate,260);
+ }
+
+ animate();
+}
+
+rollButton.addEventListener("click",rollDice);
+
+/* ---------------- VICTORY CELEBRATION ---------------- */
+
+function makeConfetti(){
+ const layer=$("confettiLayer");
+ layer.innerHTML="";
+
+ for(let i=0;i<55;i++){
+  const piece=document.createElement("div");
+  piece.className="confetti";
+  piece.style.left=Math.random()*100+"%";
+  piece.style.animationDelay=(Math.random()*4)+"s";
+  piece.style.transform="rotate("+Math.random()*360+"deg)";
+  layer.appendChild(piece);
+ }
+}
+
+function playVictorySound(){
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+
+  const ctx=new AudioCtx();
+
+  [523.25,659.25,783.99,1046.5].forEach((freq,i)=>{
+   const osc=ctx.createOscillator(),gain=ctx.createGain();
+
+   osc.frequency.value=freq;
+   osc.type="triangle";
+
+   gain.gain.setValueAtTime(.0001,ctx.currentTime+i*.18);
+   gain.gain.exponentialRampToValueAtTime(.12,ctx.currentTime+i*.18+.04);
+   gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+i*.18+.3);
+
+   osc.connect(gain);
+   gain.connect(ctx.destination);
+
+   osc.start(ctx.currentTime+i*.18);
+   osc.stop(ctx.currentTime+i*.18+.32);
+  });
+ }catch(e){}
+}
+
+function showVictory(winner){
+ moving=false;
+ questionLocked=false;
+ clearTimeout(botTimer);
+
+ $("winnerAnimal").textContent=winner.emoji;
+ $("winnerName").textContent=winner.displayName+" WINS!";
+ $("winnerMessage").textContent=winner.displayName+" has conquered the jungle and reached the JUMANJI finish!";
+
+ makeConfetti();
+ $("victoryScreen").classList.add("show");
+
+ rollButton.disabled=true;
+ playVictorySound();
+}
+
+/* Play Again preserves the selected bot difficulty. */
+
+function playAgain(){
+ $("victoryScreen").classList.remove("show");
+
+ startGame(
+  lastGameCount,
+  lastGameMode,
+  lastGameMode==="bot"?lastGameLevel:null
+ );
+}
+
+function mainMenu(){
+ $("victoryScreen").classList.remove("show");
+
+ moving=false;
+ questionLocked=false;
+ clearTimeout(botTimer);
+
+ $("questionModal").classList.remove("show");
+ showScreen("lobbyScreen");
+}
+
+/* ---------------- STARTUP ---------------- */
+
+$("welcomeText").textContent="Welcome, "+playerName+"!";
+$("status").textContent="Your adventure awaits!";
+
+</script>
+</body>
+</html>
+
